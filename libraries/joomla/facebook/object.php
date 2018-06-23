@@ -3,26 +3,24 @@
  * @package     Joomla.Platform
  * @subpackage  Facebook
  *
- * @copyright   Copyright (C) 2005 - 2014 Open Source Matters, Inc. All rights reserved.
+ * @copyright   Copyright (C) 2005 - 2018 Open Source Matters, Inc. All rights reserved.
  * @license     GNU General Public License version 2 or later; see LICENSE
  */
 
+defined('JPATH_PLATFORM') or die;
 
-defined('JPATH_PLATFORM') or die();
-
+use Joomla\Registry\Registry;
 
 /**
  * Facebook API object class for the Joomla Platform.
  *
- * @package     Joomla.Platform
- * @subpackage  Facebook
- *
  * @since       13.1
+ * @deprecated  4.0  Use the `joomla/facebook` package via Composer instead
  */
 abstract class JFacebookObject
 {
 	/**
-	 * @var    JRegistry  Options for the Facebook object.
+	 * @var    Registry  Options for the Facebook object.
 	 * @since  13.1
 	 */
 	protected $options;
@@ -42,15 +40,15 @@ abstract class JFacebookObject
 	/**
 	 * Constructor.
 	 *
-	 * @param   JRegistry       $options  Facebook options object.
+	 * @param   Registry        $options  Facebook options object.
 	 * @param   JHttp           $client   The HTTP client object.
 	 * @param   JFacebookOAuth  $oauth    The OAuth client.
 	 *
 	 * @since   13.1
 	 */
-	public function __construct(JRegistry $options = null, JHttp $client = null, JFacebookOAuth $oauth = null)
+	public function __construct(Registry $options = null, JHttp $client = null, JFacebookOAuth $oauth = null)
 	{
-		$this->options = isset($options) ? $options : new JRegistry;
+		$this->options = isset($options) ? $options : new Registry;
 		$this->client = isset($client) ? $client : new JHttp($this->options);
 		$this->oauth = $oauth;
 	}
@@ -60,11 +58,11 @@ abstract class JFacebookObject
 	 * add appropriate pagination details if necessary and also prepend the API url
 	 * to have a complete URL for the request.
 	 *
-	 * @param   string     $path    URL to inflect.
-	 * @param   integer    $limit   The number of objects per page.
-	 * @param   integer    $offset  The object's number on the page.
-	 * @param   timestamp  $until   A unix timestamp or any date accepted by strtotime.
-	 * @param   timestamp  $since   A unix timestamp or any date accepted by strtotime.
+	 * @param   string   $path    URL to inflect.
+	 * @param   integer  $limit   The number of objects per page.
+	 * @param   integer  $offset  The object's number on the page.
+	 * @param   integer  $until   A unix timestamp or any date accepted by strtotime.
+	 * @param   integer  $since   A unix timestamp or any date accepted by strtotime.
 	 *
 	 * @return  string  The request URL.
 	 *

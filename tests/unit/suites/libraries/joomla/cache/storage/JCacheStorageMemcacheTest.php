@@ -3,246 +3,73 @@
  * @package     Joomla.UnitTest
  * @subpackage  Cache
  *
- * @copyright   Copyright (C) 2005 - 2014 Open Source Matters, Inc. All rights reserved.
- * @license     GNU General Public License version 2 or later; see LICENSE
+ * @copyright   Copyright (C) 2005 - 2018 Open Source Matters, Inc. All rights reserved.
+ * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 /**
  * Test class for JCacheStorageMemcache.
- *
- * @package     Joomla.UnitTest
- * @subpackage  Cache
- *
- * @since       11.1
  */
-class JCacheStorageMemcacheTest extends PHPUnit_Framework_TestCase
+class JCacheStorageMemcacheTest extends TestCaseCache
 {
-	/**
-	 * @var    JCacheStorageMemcache
-	 * @access protected
-	 */
-	protected $object;
-
-	/**
-	 * @var    memcacheAvailable
-	 * @access protected
-	 */
-	protected $memcacheAvailable;
-
 	/**
 	 * Sets up the fixture, for example, opens a network connection.
 	 * This method is called before a test is executed.
 	 *
-	 * @return void
-	 *
-	 * @access protected
+	 * @return  void
 	 */
 	protected function setUp()
 	{
-		include_once JPATH_PLATFORM . '/joomla/cache/storage.php';
-		include_once JPATH_PLATFORM . '/joomla/cache/storage/memcache.php';
-
-		$memcachetest = false;
-
-		if (!extension_loaded('memcache') || !class_exists('Memcache'))
+		if (!JCacheStorageMemcache::isSupported())
 		{
-			$this->memcacheAvailable = false;
-		}
-		else
-		{
-			$config = JFactory::getConfig();
-			$host = $config->get('memcache_server_host', 'localhost');
-			$port = $config->get('memcache_server_port', 11211);
-
-			$memcache = new Memcache;
-			$memcachetest = @$memcache->connect($host, $port);
+			$this->markTestSkipped('The Memcache cache handler is not supported on this system.');
 		}
 
-		if (!$memcachetest)
+		parent::setUp();
+
+		// Parse the DSN details for the test server
+		$dsn = defined('JTEST_CACHE_MEMCACHE_DSN') ? JTEST_CACHE_MEMCACHE_DSN : getenv('JTEST_CACHE_MEMCACHE_DSN');
+
+		if ($dsn)
 		{
-			$this->memcacheAvailable = false;
-		}
-		else
-		{
-			$this->memcacheAvailable = true;
+			// First let's trim the redis: part off the front of the DSN if it exists.
+			if (strpos($dsn, 'memcache:') === 0)
+			{
+				$dsn = substr($dsn, 9);
+			}
+
+			// Call getConfig once to have the registry object prepared
+			JFactory::getConfig();
+
+			// Split the DSN into its parts over semicolons.
+			$parts = explode(';', $dsn);
+
+			// Parse each part and populate the options array.
+			foreach ($parts as $part)
+			{
+				list ($k, $v) = explode('=', $part, 2);
+				switch ($k)
+				{
+					case 'host':
+						JFactory::$config->set("memcache_server_host", $v);
+						break;
+					case 'port':
+						JFactory::$config->set("memcache_server_port", $v);
+						break;
+				}
+			}
 		}
 
-		if ($this->memcacheAvailable)
+		try
 		{
-			$this->object = JCacheStorage::getInstance('memcache');
+			$this->handler = new JCacheStorageMemcache;
 		}
-	}
+		catch (JCacheExceptionConnecting $e)
+		{
+			$this->markTestSkipped('Failed to connect to Memcache');
+		}
 
-	/**
-	 * Test...
-	 *
-	 * @return void
-	 *
-	 * @todo Implement testGetConnection().
-	 */
-	public function testGetConnection()
-	{
-		if ($this->memcacheAvailable)
-		{
-			$this->markTestIncomplete('This test has not been implemented yet.');
-		}
-		else
-		{
-			$this->markTestSkipped('This caching method is not supported on this system.');
-		}
-	}
-
-	/**
-	 * Test...
-	 *
-	 * @return void
-	 *
-	 * @todo Implement testGetConfig().
-	 */
-	public function testGetConfig()
-	{
-		if ($this->memcacheAvailable)
-		{
-			$this->markTestIncomplete('This test has not been implemented yet.');
-		}
-		else
-		{
-			$this->markTestSkipped('This caching method is not supported on this system.');
-		}
-	}
-
-	/**
-	 * Test...
-	 *
-	 * @return void
-	 *
-	 * @todo Implement testGet().
-	 */
-	public function testGet()
-	{
-		if ($this->memcacheAvailable)
-		{
-			$this->markTestIncomplete('This test has not been implemented yet.');
-		}
-		else
-		{
-			$this->markTestSkipped('This caching method is not supported on this system.');
-		}
-	}
-
-	/**
-	 * Test...
-	 *
-	 * @return void
-	 *
-	 * @todo Implement testStore().
-	 */
-	public function testStore()
-	{
-		if ($this->memcacheAvailable)
-		{
-			$this->markTestIncomplete('This test has not been implemented yet.');
-		}
-		else
-		{
-			$this->markTestSkipped('This caching method is not supported on this system.');
-		}
-	}
-
-	/**
-	 * Test...
-	 *
-	 * @return void
-	 *
-	 * @todo Implement testRemove().
-	 */
-	public function testRemove()
-	{
-		if ($this->memcacheAvailable)
-		{
-			$this->markTestIncomplete('This test has not been implemented yet.');
-		}
-		else
-		{
-			$this->markTestSkipped('This caching method is not supported on this system.');
-		}
-	}
-
-	/**
-	 * Test...
-	 *
-	 * @return void
-	 *
-	 * @todo Implement testClean().
-	 */
-	public function testClean()
-	{
-		if ($this->memcacheAvailable)
-		{
-			$this->markTestIncomplete('This test has not been implemented yet.');
-		}
-		else
-		{
-			$this->markTestSkipped('This caching method is not supported on this system.');
-		}
-	}
-
-	/**
-	 * Test...
-	 *
-	 * @return void
-	 *
-	 * @todo Implement testGc().
-	 */
-	public function testGc()
-	{
-		if ($this->memcacheAvailable)
-		{
-			$this->markTestIncomplete('This test has not been implemented yet.');
-		}
-		else
-		{
-			$this->markTestSkipped('This caching method is not supported on this system.');
-		}
-	}
-
-	/**
-	 * Testing isSupported().
-	 *
-	 * @return void
-	 */
-	public function testIsSupported()
-	{
-		if ($this->memcacheAvailable)
-		{
-			$this->assertThat(
-				$this->object->isSupported(),
-				$this->isTrue(),
-				'Claims memcache is not loaded.'
-			);
-		}
-		else
-		{
-			$this->markTestSkipped('This caching method is not supported on this system.');
-		}
-	}
-
-	/**
-	 * Test...
-	 *
-	 * @todo Implement test_getCacheId().
-	 *
-	 * @return void
-	 */
-	public function testGetCacheId()
-	{
-		if ($this->memcacheAvailable)
-		{
-			$this->markTestIncomplete('This test has not been implemented yet.');
-		}
-		else
-		{
-			$this->markTestSkipped('This caching method is not supported on this system.');
-		}
+		// Override the lifetime because the JCacheStorage API multiplies it by 60 (converts minutes to seconds)
+		$this->handler->_lifetime = 2;
 	}
 }

@@ -3,8 +3,8 @@
  * @package     Joomla.UnitTest
  * @subpackage  Feed
  *
- * @copyright   Copyright (C) 2005 - 2012 Open Source Matters, Inc. All rights reserved.
- * @license     GNU General Public License version 2 or later; see LICENSE
+ * @copyright   Copyright (C) 2005 - 2018 Open Source Matters, Inc. All rights reserved.
+ * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 JLoader::register('JFeedParserMock', __DIR__ . '/stubs/JFeedParserMock.php');
@@ -41,12 +41,11 @@ class JFeedParserTest extends TestCase
 	 */
 	public function testParse()
 	{
-		// Create the mock so we can verify calls.
-		$parser = $this->getMock(
-			'JFeedParserMock',
-			array('initialise', 'processElement'),
-			array($this->_reader)
-		);
+		// Build the mock so we can verify calls.
+		$parser  = $this->getMockBuilder('JFeedParserMock')
+					->setMethods(array('initialise', 'processElement'))
+					->setConstructorArgs(array($this->_reader))
+					->getMock();
 
 		// Setup some expectations for the mock object.
 		$parser->expects($this->once())->method('initialise');
@@ -81,7 +80,7 @@ class JFeedParserTest extends TestCase
 		$this->assertAttributeEmpty('namespaces', $this->_instance);
 
 		// Add a new namespace.
-		$mock = $this->getMock('JFeedParserNamespace');
+		$mock = $this->getMockBuilder('JFeedParserNamespace')->getMock();
 		$this->_instance->registerNamespace('foo', $mock);
 
 		$this->assertAttributeEquals(
@@ -98,33 +97,6 @@ class JFeedParserTest extends TestCase
 			'namespaces',
 			$this->_instance
 		);
-	}
-
-	/**
-	 * Tests JFeedParser::registerNamespace() with an expected failure.  Cannot register a string.
-	 *
-	 * @return  void
-	 *
-	 * @expectedException  PHPUnit_Framework_Error
-	 * @since              12.3
-	 */
-	public function testRegisterNamespaceWithString()
-	{
-		$this->_instance->registerNamespace('foo', 'bar');
-	}
-
-	/**
-	 * Tests JFeedParser::registerNamespace() with an expected failure.  Cannot register a handler
-	 * that isn't an instance of JFeedParserNamespace.
-	 *
-	 * @return  void
-	 *
-	 * @expectedException  PHPUnit_Framework_Error
-	 * @since              12.3
-	 */
-	public function testRegisterNamespaceWithObject()
-	{
-		$this->_instance->registerNamespace('foo', new stdClass);
 	}
 
 	/**
@@ -211,7 +183,7 @@ class JFeedParserTest extends TestCase
 	public function testFetchNamespace()
 	{
 		// Set a mock namespace into the namespaces for the parser object.
-		$mock = $this->getMock('JFeedParserNamespace');
+		$mock = $this->getMockBuilder('JFeedParserNamespace')->getMock();
 		$namespaces = array('mock' => $mock);
 		TestReflection::setValue($this->_instance, 'namespaces', $namespaces);
 
@@ -400,7 +372,7 @@ class JFeedParserTest extends TestCase
 	 *
 	 * @return  void
 	 *
-	 * @see     PHPUnit_Framework_TestCase::setUp()
+	 * @see     \PHPUnit\Framework\TestCase::setUp()
 	 * @since   12.3
 	 */
 	protected function setUp()
@@ -419,14 +391,13 @@ class JFeedParserTest extends TestCase
 	 *
 	 * @return  void
 	 *
-	 * @see     PHPUnit_Framework_TestCase::tearDown()
+	 * @see     \PHPUnit\Framework\TestCase::tearDown()
 	 * @since   12.3
 	 */
 	protected function tearDown()
 	{
-		unset($this->_instance);
-		unset($this->_reader);
+		unset($this->_instance, $this->_reader);
 
-		parent::teardown();
+		parent::tearDown();
 	}
 }

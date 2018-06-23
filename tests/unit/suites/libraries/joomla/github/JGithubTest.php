@@ -3,8 +3,8 @@
  * @package     Joomla.UnitTest
  * @subpackage  Github
  *
- * @copyright   Copyright (C) 2005 - 2014 Open Source Matters, Inc. All rights reserved.
- * @license     GNU General Public License version 2 or later; see LICENSE
+ * @copyright   Copyright (C) 2005 - 2018 Open Source Matters, Inc. All rights reserved.
+ * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 /**
@@ -12,9 +12,10 @@
  *
  * @package     Joomla.UnitTest
  * @subpackage  Github
+ *
  * @since       11.1
  */
-class JGithubTest extends TestCase
+class JGithubTest extends \PHPUnit\Framework\TestCase
 {
 	/**
 	 * @var    JRegistry  Options for the GitHub object.
@@ -47,7 +48,7 @@ class JGithubTest extends TestCase
 		parent::setUp();
 
 		$this->options = new JRegistry;
-		$this->client = $this->getMock('JGithubHttp', array('get', 'post', 'delete', 'patch', 'put'));
+		$this->client = $this->getMockBuilder('JGithubHttp')->setMethods(array('get', 'post', 'delete', 'patch', 'put'))->getMock();
 
 		$this->object = new JGithub($this->options, $this->client);
 	}
@@ -62,6 +63,8 @@ class JGithubTest extends TestCase
 	 */
 	protected function tearDown()
 	{
+		unset($this->options, $this->client, $this->object);
+		parent::tearDown();
 	}
 
 	/**
@@ -75,7 +78,7 @@ class JGithubTest extends TestCase
 	{
 		$this->assertThat(
 			$this->object->gists,
-			$this->isInstanceOf('JGithubGists')
+			$this->isInstanceOf('JGithubPackageGists')
 		);
 	}
 
@@ -90,7 +93,7 @@ class JGithubTest extends TestCase
 	{
 		$this->assertThat(
 			$this->object->issues,
-			$this->isInstanceOf('JGithubIssues')
+			$this->isInstanceOf('JGithubPackageIssues')
 		);
 	}
 
@@ -105,7 +108,7 @@ class JGithubTest extends TestCase
 	{
 		$this->assertThat(
 			$this->object->pulls,
-			$this->isInstanceOf('JGithubPulls')
+			$this->isInstanceOf('JGithubPackagePulls')
 		);
 	}
 
@@ -119,8 +122,8 @@ class JGithubTest extends TestCase
 	public function test__GetRefs()
 	{
 		$this->assertThat(
-			$this->object->refs,
-			$this->isInstanceOf('JGithubRefs')
+			$this->object->data->refs,
+			$this->isInstanceOf('JGithubPackageDataRefs')
 		);
 	}
 
@@ -134,8 +137,8 @@ class JGithubTest extends TestCase
 	public function test__GetForks()
 	{
 		$this->assertThat(
-			$this->object->forks,
-			$this->isInstanceOf('JGithubForks')
+			$this->object->repositories->forks,
+			$this->isInstanceOf('JGithubPackageRepositoriesForks')
 		);
 	}
 
@@ -149,8 +152,8 @@ class JGithubTest extends TestCase
 	public function test__GetCommits()
 	{
 		$this->assertThat(
-			$this->object->commits,
-			$this->isInstanceOf('JGithubCommits')
+			$this->object->repositories->commits,
+			$this->isInstanceOf('JGithubPackageRepositoriesCommits')
 		);
 	}
 
@@ -164,8 +167,8 @@ class JGithubTest extends TestCase
 	public function test__GetMilestones()
 	{
 		$this->assertThat(
-			$this->object->milestones,
-			$this->isInstanceOf('JGithubMilestones')
+			$this->object->issues->milestones,
+			$this->isInstanceOf('JGithubPackageIssuesMilestones')
 		);
 	}
 
@@ -179,8 +182,8 @@ class JGithubTest extends TestCase
 	public function test__GetStatuses()
 	{
 		$this->assertThat(
-			$this->object->statuses,
-			$this->isInstanceOf('JGithubStatuses')
+			$this->object->repositories->statuses,
+			$this->isInstanceOf('JGithubPackageRepositoriesStatuses')
 		);
 	}
 
@@ -194,8 +197,8 @@ class JGithubTest extends TestCase
 	public function test__GetAccount()
 	{
 		$this->assertThat(
-			$this->object->account,
-			$this->isInstanceOf('JGithubAccount')
+			$this->object->authorization,
+			$this->isInstanceOf('JGithubPackageAuthorization')
 		);
 	}
 
@@ -209,23 +212,8 @@ class JGithubTest extends TestCase
 	public function test__GetHooks()
 	{
 		$this->assertThat(
-			$this->object->hooks,
-			$this->isInstanceOf('JGithubHooks')
-		);
-	}
-
-	/**
-	 * Tests the magic __get method - meta
-	 *
-	 * @since  13.1
-	 *
-	 * @return void
-	 */
-	public function test__GetMeta()
-	{
-		$this->assertThat(
-			$this->object->meta,
-			$this->isInstanceOf('JGithubMeta')
+			$this->object->repositories->hooks,
+			$this->isInstanceOf('JGithubPackageRepositoriesHooks')
 		);
 	}
 
@@ -233,14 +221,32 @@ class JGithubTest extends TestCase
 	 * Tests the magic __get method - failure
 	 *
 	 * @since  11.3
+	 * @expectedException RuntimeException
 	 *
 	 * @return void
-	 *
-	 * @expectedException  InvalidArgumentException
 	 */
 	public function test__GetFailure()
 	{
-		$this->object->other;
+		$this->assertThat(
+			$this->object->other,
+			$this->isNull()
+		);
+	}
+
+	/**
+	 * Tests the magic __get method - failure
+	 *
+	 * @since  11.3
+	 * @expectedException RuntimeException
+	 *
+	 * @return void
+	 */
+	public function test__GetPackageFailure()
+	{
+		$this->assertThat(
+			$this->object->repositories->other,
+			$this->isNull()
+		);
 	}
 
 	/**

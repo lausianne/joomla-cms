@@ -3,20 +3,20 @@
  * @package     Joomla.Plugin
  * @subpackage  User.contactcreator
  *
- * @copyright   Copyright (C) 2005 - 2014 Open Source Matters, Inc. All rights reserved.
+ * @copyright   Copyright (C) 2005 - 2018 Open Source Matters, Inc. All rights reserved.
  * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 defined('_JEXEC') or die;
+
+use Joomla\String\StringHelper;
 
 /**
  * Class for Contact Creator
  *
  * A tool to automatically create and synchronise contacts with a user
  *
- * @package     Joomla.Plugin
- * @subpackage  User.contactcreator
- * @since       1.6
+ * @since  1.6
  */
 class PlgUserContactCreator extends JPlugin
 {
@@ -38,7 +38,7 @@ class PlgUserContactCreator extends JPlugin
 	 * @param   boolean  $success  True if user was succesfully stored in the database.
 	 * @param   string   $msg      Message.
 	 *
-	 * @return  void
+	 * @return  boolean
 	 *
 	 * @since   1.6
 	 */
@@ -89,6 +89,7 @@ class PlgUserContactCreator extends JPlugin
 			$contact->user_id  = $user_id;
 			$contact->email_to = $user['email'];
 			$contact->catid    = $categoryId;
+			$contact->access   = (int) JFactory::getConfig()->get('access');
 			$contact->language = '*';
 			$contact->generateAlias();
 
@@ -143,12 +144,12 @@ class PlgUserContactCreator extends JPlugin
 
 		while ($table->load(array('alias' => $alias, 'catid' => $categoryId)))
 		{
-			if ($name == $table->name)
+			if ($name === $table->name)
 			{
-				$name = JString::increment($name);
+				$name = StringHelper::increment($name);
 			}
 
-			$alias = JString::increment($alias, 'dash');
+			$alias = StringHelper::increment($alias, 'dash');
 		}
 
 		return array($name, $alias);

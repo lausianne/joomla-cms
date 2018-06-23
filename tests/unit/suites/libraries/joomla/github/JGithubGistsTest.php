@@ -3,13 +3,9 @@
  * @package     Joomla.UnitTest
  * @subpackage  Github
  *
- * @copyright   Copyright (C) 2005 - 2014 Open Source Matters, Inc. All rights reserved.
- * @license     GNU General Public License version 2 or later; see LICENSE
+ * @copyright   Copyright (C) 2005 - 2018 Open Source Matters, Inc. All rights reserved.
+ * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
-
-require_once JPATH_PLATFORM . '/joomla/github/github.php';
-require_once JPATH_PLATFORM . '/joomla/github/http.php';
-require_once JPATH_PLATFORM . '/joomla/github/gists.php';
 
 /**
  * Test class for JGithubGists.
@@ -19,7 +15,7 @@ require_once JPATH_PLATFORM . '/joomla/github/gists.php';
  *
  * @since       11.1
  */
-class JGithubGistsTest extends PHPUnit_Framework_TestCase
+class JGithubGistsTest extends \PHPUnit\Framework\TestCase
 {
 	/**
 	 * @var    JRegistry  Options for the GitHub object.
@@ -34,7 +30,13 @@ class JGithubGistsTest extends PHPUnit_Framework_TestCase
 	protected $client;
 
 	/**
-	 * @var    JGithubGists  Object under test.
+	 * @var    JHttpResponse  Mock response object.
+	 * @since  12.3
+	 */
+	protected $response;
+
+	/**
+	 * @var    JGithubPackageGists  Object under test.
 	 * @since  11.4
 	 */
 	protected $object;
@@ -64,9 +66,24 @@ class JGithubGistsTest extends PHPUnit_Framework_TestCase
 		parent::setUp();
 
 		$this->options = new JRegistry;
-		$this->client = $this->getMock('JGithubHttp', array('get', 'post', 'delete', 'patch', 'put'));
+		$this->client = $this->getMockBuilder('JGithubHttp')->setMethods(array('get', 'post', 'delete', 'patch', 'put'))->getMock();
+		$this->response = $this->getMockBuilder('JHttpResponse')->getMock();
 
-		$this->object = new JGithubGists($this->options, $this->client);
+		$this->object = new JGithubPackageGists($this->options, $this->client);
+	}
+
+	/**
+	 * Overrides the parent tearDown method.
+	 *
+	 * @return  void
+	 *
+	 * @see     \PHPUnit\Framework\TestCase::tearDown()
+	 * @since   3.6
+	 */
+	protected function tearDown()
+	{
+		unset($this->options, $this->client, $this->response, $this->object);
+		parent::tearDown();
 	}
 
 	/**
@@ -123,7 +140,7 @@ class JGithubGistsTest extends PHPUnit_Framework_TestCase
 		$data = json_encode(
 			array(
 				'files' => array(
-					'gittest' => array('content' => 'GistContent' . PHP_EOL)
+					'gittest' => array('content' => 'GistContent' . "\n")
 				),
 				'public' => true,
 				'description' => 'This is a gist'
@@ -138,7 +155,7 @@ class JGithubGistsTest extends PHPUnit_Framework_TestCase
 		$this->assertThat(
 			$this->object->create(
 				array(
-					JPATH_TESTS . '/tmp/gittest'
+					JPATH_TEST_STUBS . '/gittest'
 				),
 				true,
 				'This is a gist'

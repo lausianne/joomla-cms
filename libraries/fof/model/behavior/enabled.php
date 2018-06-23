@@ -2,11 +2,11 @@
 /**
  * @package     FrameworkOnFramework
  * @subpackage  model
- * @copyright   Copyright (C) 2010 - 2012 Akeeba Ltd. All rights reserved.
+ * @copyright   Copyright (C) 2010-2016 Nicholas K. Dionysopoulos / Akeeba Ltd. All rights reserved.
  * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 // Protect from unauthorized access
-defined('_JEXEC') or die;
+defined('FOF_INCLUDED') or die;
 
 /**
  * FrameworkOnFramework model behavior class to filter front-end access to items
@@ -22,7 +22,7 @@ class FOFModelBehaviorEnabled extends FOFModelBehavior
 	 * list in a model. It is used to apply automatic query filters.
 	 *
 	 * @param   FOFModel        &$model  The model which calls this event
-	 * @param   JDatabaseQuery  &$query  The model which calls this event
+	 * @param   FOFDatabaseQuery  &$query  The model which calls this event
 	 *
 	 * @return  void
 	 */
@@ -45,8 +45,13 @@ class FOFModelBehaviorEnabled extends FOFModelBehavior
 		}
 
 		// Filter by enabled fields only
-		$db = JFactory::getDbo();
-		$query->where($db->qn($enabledField) . ' = ' . $db->q(1));
+		$db = FOFPlatform::getInstance()->getDbo();
+
+		// Alias
+		$alias = $model->getTableAlias();
+		$alias = $alias ? $db->qn($alias) . '.' : '';
+
+		$query->where($alias . $db->qn($enabledField) . ' = ' . $db->q(1));
 	}
 
 	/**

@@ -3,7 +3,7 @@
  * @package     Joomla.Administrator
  * @subpackage  com_contenthistory
  *
- * @copyright   Copyright (C) 2005 - 2014 Open Source Matters, Inc. All rights reserved.
+ * @copyright   Copyright (C) 2005 - 2018 Open Source Matters, Inc. All rights reserved.
  * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -12,9 +12,7 @@ defined('_JEXEC') or die;
 /**
  * View class for a list of contenthistory.
  *
- * @package     Joomla.Administrator
- * @subpackage  com_contenthistory
- * @since       1.5
+ * @since  1.5
  */
 class ContenthistoryViewPreview extends JViewLegacy
 {
@@ -34,14 +32,21 @@ class ContenthistoryViewPreview extends JViewLegacy
 	public function display($tpl = null)
 	{
 		$this->state = $this->get('State');
-		$this->item = $this->get('Item');
+		$this->item  = $this->get('Item');
+
+		if (false === $this->item)
+		{
+			JFactory::getLanguage()->load('com_content', JPATH_SITE, null, true);
+
+			JError::raiseError(404, JText::_('COM_CONTENT_ERROR_ARTICLE_NOT_FOUND'));
+
+			return false;
+		}
 
 		// Check for errors.
 		if (count($errors = $this->get('Errors')))
 		{
-			JError::raiseError(500, implode("\n", $errors));
-
-			return false;
+			throw new Exception(implode("\n", $errors), 500);
 		}
 
 		return parent::display($tpl);

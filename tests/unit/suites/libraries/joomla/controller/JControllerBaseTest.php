@@ -3,8 +3,8 @@
  * @package     Joomla.UnitTest
  * @subpackage  Controller
  *
- * @copyright   Copyright (C) 2005 - 2011 Open Source Matters, Inc. All rights reserved.
- * @license     GNU General Public License version 2 or later; see LICENSE
+ * @copyright   Copyright (C) 2005 - 2018 Open Source Matters, Inc. All rights reserved.
+ * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 JLoader::register('BaseController', __DIR__ . '/stubs/tbase.php');
@@ -33,11 +33,11 @@ class JControllerBaseTest extends TestCase
 	 */
 	public function test__construct()
 	{
-		// New controller with no dependancies.
+		// New controller with no dependencies.
 		$this->assertEquals('default', TestReflection::getValue($this->_instance, 'app')->input, 'Checks the mock application came from the factory.');
 		$this->assertAttributeEquals('default', 'input', $this->_instance, 'Checks the input came from the application.');
 
-		// New controller with dependancies
+		// New controller with dependencies
 		$app = TestMockApplicationWeb::create($this);
 		$app->test = 'ok';
 
@@ -171,7 +171,7 @@ class JControllerBaseTest extends TestCase
 	protected function tearDown()
 	{
 		$this->restoreFactoryState();
-
-		parent::teardown();
+		unset($this->_instance);
+		parent::tearDown();
 	}
 }

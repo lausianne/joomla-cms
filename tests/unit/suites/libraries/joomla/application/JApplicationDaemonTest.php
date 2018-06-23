@@ -3,8 +3,8 @@
  * @package     Joomla.UnitTest
  * @subpackage  Application
  *
- * @copyright   Copyright (C) 2005 - 2014 Open Source Matters, Inc. All rights reserved.
- * @license     GNU General Public License version 2 or later; see LICENSE
+ * @copyright   Copyright (C) 2005 - 2018 Open Source Matters, Inc. All rights reserved.
+ * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 include_once __DIR__ . '/stubs/JApplicationDaemonInspector.php';
@@ -58,7 +58,7 @@ class JApplicationDaemonTest extends TestCase
 	 *
 	 * @return  void
 	 *
-	 * @see     PHPUnit_Framework_TestCase::tearDown()
+	 * @see     \PHPUnit\Framework\TestCase::tearDown()
 	 * @since   11.3
 	 */
 	protected function tearDown()
@@ -85,7 +85,7 @@ class JApplicationDaemonTest extends TestCase
 	 *
 	 * @return  void
 	 *
-	 * @see     PHPUnit_Framework_TestCase::tearDownAfterClass()
+	 * @see     \PHPUnit\Framework\TestCase::tearDownAfterClass()
 	 * @since   11.3
 	 */
 	public static function tearDownAfterClass()
@@ -99,78 +99,6 @@ class JApplicationDaemonTest extends TestCase
 
 		ini_restore('memory_limit');
 		parent::tearDownAfterClass();
-	}
-
-	/**
-	 * Tests the JApplicationDaemon::changeIdentity method.
-	 *
-	 * @return  void
-	 *
-	 * @since   11.3
-	 */
-	public function testChangeIdentity()
-	{
-		$this->markTestIncomplete();
-	}
-
-	/**
-	 * Tests the JApplicationDaemon::daemonize method.
-	 *
-	 * @return  void
-	 *
-	 * @since   11.3
-	 */
-	public function testDaemonize()
-	{
-		$this->markTestIncomplete();
-	}
-
-	/**
-	 * Tests the JApplicationDaemon::fork method.
-	 *
-	 * @return  void
-	 *
-	 * @since   11.3
-	 */
-	public function testFork()
-	{
-		$this->markTestIncomplete();
-	}
-
-	/**
-	 * Tests the JApplicationDaemon::gc method.
-	 *
-	 * @return  void
-	 *
-	 * @since   11.3
-	 */
-	public function testGc()
-	{
-		$this->markTestIncomplete();
-	}
-
-	/**
-	 * Tests the JApplicationDaemon::isActive method.
-	 *
-	 * @return  void
-	 *
-	 * @since   11.3
-	 */
-	public function testIsActive()
-	{
-		$this->markTestIncomplete();
-	}
-
-	/**
-	 * Tests the JApplicationDaemon::loadConfiguration method.
-	 *
-	 * @return  void
-	 *
-	 * @since   11.3
-	 */
-	public function testLoadConfiguration()
-	{
-		$this->markTestIncomplete();
 	}
 
 	/**
@@ -220,42 +148,6 @@ class JApplicationDaemonTest extends TestCase
 			$this->equalTo(false),
 			'Check that only setupSignalHandlers return is false.'
 		);
-	}
-
-	/**
-	 * Tests the JApplicationDaemon::shutdown method.
-	 *
-	 * @return  void
-	 *
-	 * @since   11.3
-	 */
-	public function testShutdown()
-	{
-		$this->markTestIncomplete();
-	}
-
-	/**
-	 * Tests the JApplicationDaemon::signal method.
-	 *
-	 * @return  void
-	 *
-	 * @since   11.3
-	 */
-	public function testSignal()
-	{
-		$this->markTestIncomplete();
-	}
-
-	/**
-	 * Tests the JApplicationDaemon::execute method.
-	 *
-	 * @return  void
-	 *
-	 * @since   11.3
-	 */
-	public function testExecute()
-	{
-		$this->markTestIncomplete();
 	}
 
 	/**

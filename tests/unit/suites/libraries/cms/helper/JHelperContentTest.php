@@ -3,8 +3,8 @@
  * @package	    Joomla.UnitTest
  * @subpackage  Helper
  *
- * @copyright   Copyright (C) 2005 - 2014 Open Source Matters, Inc. All rights reserved.
- * @license	    GNU General Public License version 2 or later; see LICENSE
+ * @copyright   Copyright (C) 2005 - 2018 Open Source Matters, Inc. All rights reserved.
+ * @license	    GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 /**
@@ -51,20 +51,21 @@ class JHelperContentTest extends TestCaseDatabase
 	{
 		parent::setUp();
 
+		$this->saveFactoryState();
+
 		$this->object = new JHelperContent;
-		JFactory::$application = $this->getMockApplication();
+		JFactory::$application = $this->getMockCmsApp();
 	}
 
 	/**
-	 * Tests the getCurrentLanguage()
-	 *
-	 * @return  void
-	 *
-	 * @since   3.2
+	 * Tears down the fixture, for example, closes a network connection.
+	 * This method is called after a test is executed.
 	 */
-	public function testGetCurrentLanguage()
+	protected function tearDown()
 	{
-		$this->markTestSkipped('Test not implemented.');
+		$this->restoreFactoryState();
+		unset($this->object);
+		parent::tearDown();
 	}
 
 	/**
@@ -89,6 +90,7 @@ class JHelperContentTest extends TestCaseDatabase
 	 *
 	 * @since   3.2
 	 * @dataProvider  languageIdProvider
+	 * @covers  JHelperContent::getLanguageId
 	 */
 	public function testGetLanguageId($languageName, $expected)
 	{
@@ -97,35 +99,12 @@ class JHelperContentTest extends TestCaseDatabase
 	}
 
 	/**
-	 * Tests the getActions() method
+	 * Tests the getRowData() method
 	 *
 	 * @return  void
 	 *
 	 * @since   3.2
-	 */
-	public function testGetActions()
-	{
-		$this->markTestSkipped('Test not implemented.');
-	}
-
-	/**
-	 * Tests the addSubmenu() method
-	 *
-	 * @return  void
-	 *
-	 * @since   3.2
-	 */
-	public function testAddSubmenu()
-	{
-		$this->markTestSkipped('Test should be implemented in classes extendig this.');
-	}
-
-	/*
-	 *  Tests the getRowData() method
-	 *
-	 * @return  void
-	 *
-	 * @since   3.2
+	 * @covers  JHelperContent::getRowData
 	 */
 	public function testGetRowData()
 	{

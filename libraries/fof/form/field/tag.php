@@ -2,16 +2,13 @@
 /**
  * @package    FrameworkOnFramework
  * @subpackage form
- * @copyright  Copyright (C) 2010 - 2012 Akeeba Ltd. All rights reserved.
+ * @copyright   Copyright (C) 2010-2016 Nicholas K. Dionysopoulos / Akeeba Ltd. All rights reserved.
  * @license    GNU General Public License version 2 or later; see LICENSE.txt
  */
 // Protect from unauthorized access
-defined('_JEXEC') or die;
+defined('FOF_INCLUDED') or die;
 
-if (!class_exists('JFormFieldAccessLevel'))
-{
-	require_once JPATH_LIBRARIES . '/joomla/form/fields/accesslevel.php';
-}
+JFormHelper::loadFieldClass('tag');
 
 /**
  * Form Field class for FOF
@@ -25,12 +22,48 @@ class FOFFormFieldTag extends JFormFieldTag implements FOFFormField
 	protected $static;
 
 	protected $repeatable;
-	
+
 	/** @var   FOFTable  The item being rendered in a repeatable form field */
 	public $item;
-	
+
 	/** @var int A monotonically increasing number, denoting the row number in a repeatable view */
 	public $rowid;
+
+	/**
+	 * Method to get certain otherwise inaccessible properties from the form field object.
+	 *
+	 * @param   string  $name  The property name for which to the the value.
+	 *
+	 * @return  mixed  The property value or null.
+	 *
+	 * @since   2.0
+	 */
+	public function __get($name)
+	{
+		switch ($name)
+		{
+			case 'static':
+				if (empty($this->static))
+				{
+					$this->static = $this->getStatic();
+				}
+
+				return $this->static;
+				break;
+
+			case 'repeatable':
+				if (empty($this->repeatable))
+				{
+					$this->repeatable = $this->getRepeatable();
+				}
+
+				return $this->repeatable;
+				break;
+
+			default:
+				return parent::__get($name);
+		}
+	}
 
 	/**
 	 * Method to get a list of tags
@@ -44,15 +77,21 @@ class FOFFormFieldTag extends JFormFieldTag implements FOFFormField
 		$options = array();
 
 		$published = $this->element['published']? $this->element['published'] : array(0,1);
-		$name = (string) $this->element['name'];
 
-		$db		= JFactory::getDbo();
+		$db		= FOFPlatform::getInstance()->getDbo();
 		$query	= $db->getQuery(true)
-			->select('a.id AS value, a.path, a.title AS text, a.level, a.published')
+			->select('DISTINCT a.id AS value, a.path, a.title AS text, a.level, a.published, a.lft')
 			->from('#__tags AS a')
 			->join('LEFT', $db->quoteName('#__tags') . ' AS b ON a.lft > b.lft AND a.rgt < b.rgt');
 
-		$item = $this->form->getModel()->getItem();
+		if ($this->item instanceof FOFTable)
+		{
+			$item = $this->item;
+		}
+		else
+		{
+			$item = $this->form->getModel()->getItem();
+		}
 
 		if ($item instanceof FOFTable)
 		{
@@ -73,22 +112,13 @@ class FOFFormFieldTag extends JFormFieldTag implements FOFFormField
 			$this->value = $db->loadColumn();
 		}
 
-		// Ajax tag only loads assigned values
-		if (!$this->isNested())
-		{
-			// Only item assigned values
-			$values = (array) $this->value;
-			JArrayHelper::toInteger($values);
-			$query->where('a.id IN (' . implode(',', $values) . ')');
-		}
-
 		// Filter language
 		if (!empty($this->element['language']))
 		{
 			$query->where('a.language = ' . $db->quote($this->element['language']));
 		}
 
-		$query->where($db->quoteName('a.alias') . ' <> ' . $db->quote('root'));
+		$query->where($db->qn('a.lft') . ' > 0');
 
 		// Filter to only load active items
 
@@ -99,12 +129,11 @@ class FOFFormFieldTag extends JFormFieldTag implements FOFFormField
 		}
 		elseif (is_array($published))
 		{
-			JArrayHelper::toInteger($published);
+            FOFUtilsArray::toInteger($published);
 			$query->where('a.published IN (' . implode(',', $published) . ')');
 		}
 
-		$query->group('a.id, a.title, a.level, a.lft, a.rgt, a.parent_id, a.published, a.path')
-			->order('a.lft ASC');
+		$query->order('a.lft ASC');
 
 		// Get the options.
 		$db->setQuery($query);
@@ -141,7 +170,32 @@ class FOFFormFieldTag extends JFormFieldTag implements FOFFormField
 	 */
 	public function getStatic()
 	{
-		return '';
+		$class     = $this->element['class'] ? (string) $this->element['class'] : '';
+		$translate = $this->element['translate'] ? (string) $this->element['translate'] : false;
+
+		$options = $this->getOptions();
+
+		$html = '';
+
+		foreach ($options as $option) {
+
+			$html .= '<span>';
+
+			if ($translate == true)
+			{
+				$html .= JText::_($option->text);
+			}
+			else
+			{
+				$html .= $option->text;
+			}
+
+			$html .= '</span>';
+		}
+
+		return '<span id="' . $this->id . '" class="' . $class . '">' .
+			$html .
+			'</span>';
 	}
 
 	/**
@@ -154,6 +208,31 @@ class FOFFormFieldTag extends JFormFieldTag implements FOFFormField
 	 */
 	public function getRepeatable()
 	{
-		return '';
+		$class     = $this->element['class'] ? (string) $this->element['class'] : '';
+		$translate = $this->element['translate'] ? (string) $this->element['translate'] : false;
+
+		$options = $this->getOptions();
+
+		$html = '';
+
+		foreach ($options as $option) {
+
+			$html .= '<span>';
+
+			if ($translate == true)
+			{
+				$html .= JText::_($option->text);
+			}
+			else
+			{
+				$html .= $option->text;
+			}
+
+			$html .= '</span>';
+		}
+
+		return '<span class="' . $this->id . ' ' . $class . '">' .
+			$html .
+			'</span>';
 	}
 }

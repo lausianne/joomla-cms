@@ -3,7 +3,7 @@
  * @package     Joomla.Administrator
  * @subpackage  com_users
  *
- * @copyright   Copyright (C) 2005 - 2014 Open Source Matters, Inc. All rights reserved.
+ * @copyright   Copyright (C) 2005 - 2018 Open Source Matters, Inc. All rights reserved.
  * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -12,17 +12,65 @@ defined('_JEXEC') or die;
 /**
  * View class for a list of users.
  *
- * @package     Joomla.Administrator
- * @subpackage  com_users
- * @since       1.6
+ * @since  1.6
  */
 class UsersViewUsers extends JViewLegacy
 {
+	/**
+	 * The item data.
+	 *
+	 * @var   object
+	 * @since 1.6
+	 */
 	protected $items;
 
+	/**
+	 * The pagination object.
+	 *
+	 * @var   JPagination
+	 * @since 1.6
+	 */
 	protected $pagination;
 
+	/**
+	 * The model state.
+	 *
+	 * @var   JObject
+	 * @since 1.6
+	 */
 	protected $state;
+
+	/**
+	 * A JForm instance with filter fields.
+	 *
+	 * @var    JForm
+	 * @since  3.6.3
+	 */
+	public $filterForm;
+
+	/**
+	 * An array with active filters.
+	 *
+	 * @var    array
+	 * @since  3.6.3
+	 */
+	public $activeFilters;
+
+	/**
+	 * An ACL object to verify user rights.
+	 *
+	 * @var    JObject
+	 * @since  3.6.3
+	 */
+	protected $canDo;
+
+	/**
+	 * An instance of JDatabaseDriver.
+	 *
+	 * @var    JDatabaseDriver
+	 * @since  3.6.3
+	 */
+	protected $db;
 
 	/**
 	 * Display the view
@@ -33,21 +81,20 @@ class UsersViewUsers extends JViewLegacy
 	 */
 	public function display($tpl = null)
 	{
-		$this->items		= $this->get('Items');
-		$this->pagination	= $this->get('Pagination');
-		$this->state		= $this->get('State');
+		$this->items         = $this->get('Items');
+		$this->pagination    = $this->get('Pagination');
+		$this->state         = $this->get('State');
 		$this->filterForm    = $this->get('FilterForm');
 		$this->activeFilters = $this->get('ActiveFilters');
-		$this->canDo		= JHelperContent::getActions('com_users');
+		$this->canDo         = JHelperContent::getActions('com_users');
+		$this->db            = JFactory::getDbo();
 
 		UsersHelper::addSubmenu('users');
 
 		// Check for errors.
 		if (count($errors = $this->get('Errors')))
 		{
-			JError::raiseError(500, implode("\n", $errors));
-
-			return false;
+			throw new Exception(implode("\n", $errors), 500);
 		}
 
 		// Include the component HTML helpers.
@@ -55,6 +102,7 @@ class UsersViewUsers extends JViewLegacy
 
 		$this->addToolbar();
 		$this->sidebar = JHtmlSidebar::render();
+
 		parent::display($tpl);
 	}
 
@@ -67,11 +115,11 @@ class UsersViewUsers extends JViewLegacy
 	 */
 	protected function addToolbar()
 	{
-		$canDo	= $this->canDo;
-		$user 	= JFactory::getUser();
+		$canDo = $this->canDo;
+		$user  = JFactory::getUser();
 
 		// Get the toolbar object instance
-		$bar = JToolBar::getInstance('toolbar');
+		$bar = JToolbar::getInstance('toolbar');
 
 		JToolbarHelper::title(JText::_('COM_USERS_VIEW_USERS_TITLE'), 'users user');
 
@@ -96,14 +144,15 @@ class UsersViewUsers extends JViewLegacy
 
 		if ($canDo->get('core.delete'))
 		{
-			JToolbarHelper::deleteList('', 'users.delete');
+			JToolbarHelper::deleteList('JGLOBAL_CONFIRM_DELETE', 'users.delete', 'JTOOLBAR_DELETE');
 			JToolbarHelper::divider();
 		}
 
 		// Add a batch button
-		if ($user->authorise('core.create', 'com_users') && $user->authorise('core.edit', 'com_users') && $user->authorise('core.edit.state', 'com_users'))
+		if ($user->authorise('core.create', 'com_users')
+			&& $user->authorise('core.edit', 'com_users')
+			&& $user->authorise('core.edit.state', 'com_users'))
 		{
-			JHtml::_('bootstrap.modal', 'collapseModal');
 			$title = JText::_('JTOOLBAR_BATCH');
 
 			// Instantiate a new JLayoutFile instance and render the batch button
@@ -113,7 +162,7 @@ class UsersViewUsers extends JViewLegacy
 			$bar->appendButton('Custom', $dhtml, 'batch');
 		}
 
-		if ($canDo->get('core.admin'))
+		if ($canDo->get('core.admin') || $canDo->get('core.options'))
 		{
 			JToolbarHelper::preferences('com_users');
 			JToolbarHelper::divider();
@@ -132,14 +181,14 @@ class UsersViewUsers extends JViewLegacy
 	protected function getSortFields()
 	{
 		return array(
-				'a.name' => JText::_('COM_USERS_HEADING_NAME'),
-				'a.username' => JText::_('JGLOBAL_USERNAME'),
-				'a.block' => JText::_('COM_USERS_HEADING_ENABLED'),
-				'a.activation' => JText::_('COM_USERS_HEADING_ACTIVATED'),
-				'a.email' => JText::_('JGLOBAL_EMAIL'),
-				'a.lastvisitDate' => JText::_('COM_USERS_HEADING_LAST_VISIT_DATE'),
-				'a.registerDate' => JText::_('COM_USERS_HEADING_REGISTRATION_DATE'),
-				'a.id' => JText::_('JGRID_HEADING_ID')
+			'a.name'          => JText::_('COM_USERS_HEADING_NAME'),
+			'a.username'      => JText::_('JGLOBAL_USERNAME'),
+			'a.block'         => JText::_('COM_USERS_HEADING_ENABLED'),
+			'a.activation'    => JText::_('COM_USERS_HEADING_ACTIVATED'),
+			'a.email'         => JText::_('JGLOBAL_EMAIL'),
+			'a.lastvisitDate' => JText::_('COM_USERS_HEADING_LAST_VISIT_DATE'),
+			'a.registerDate'  => JText::_('COM_USERS_HEADING_REGISTRATION_DATE'),
+			'a.id'            => JText::_('JGRID_HEADING_ID'),
 		);
 	}
 }

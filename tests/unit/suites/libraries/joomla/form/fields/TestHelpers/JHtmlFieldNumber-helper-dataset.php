@@ -3,8 +3,8 @@
  * @package     Joomla.UnitTest
  * @subpackage  HTML
  *
- * @copyright   Copyright (C) 2005 - 2014 Open Source Matters, Inc. All rights reserved.
- * @license     GNU General Public License version 2 or later; see LICENSE
+ * @copyright   Copyright (C) 2005 - 2018 Open Source Matters, Inc. All rights reserved.
+ * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 /**
@@ -16,13 +16,13 @@
  */
 class JHtmlFieldNumberTest_DataSet
 {
-	static public $getInputTest = array(
+	public static $getInputTest = array(
 		'NoValue' => array(
 			array(
 				'id' => 'myTestId',
 				'name' => 'myTestName',
 			),
-			'<input type="number" name="myTestName" id="myTestId" value="0" />',
+			'<input type="number" name="myTestName" id="myTestId" value="" />',
 		),
 
 		'Value' => array(
@@ -40,7 +40,17 @@ class JHtmlFieldNumberTest_DataSet
 				'name' => 'myTestName',
 				'min' => 2,
 			),
-			'<input type="number" name="myTestName" id="myTestId" value="2" min="2" />',
+			'<input type="number" name="myTestName" id="myTestId" value="" min="2" />',
+		),
+
+		'MinRequired' => array(
+			array(
+				'id' => 'myTestId',
+				'name' => 'myTestName',
+				'required' => 'true',
+				'min' => 2,
+			),
+			'<input type="number" name="myTestName" id="myTestId" value="2" min="2" required aria-required="true" />',
 		),
 
 		'Max' => array(
@@ -49,7 +59,7 @@ class JHtmlFieldNumberTest_DataSet
 				'name' => 'myTestName',
 				'max' => 200,
 			),
-			'<input type="number" name="myTestName" id="myTestId" value="0" max="200" />',
+			'<input type="number" name="myTestName" id="myTestId" value="" max="200" />',
 		),
 
 		'Step' => array(
@@ -58,7 +68,7 @@ class JHtmlFieldNumberTest_DataSet
 				'name' => 'myTestName',
 				'step' => 5,
 			),
-			'<input type="number" name="myTestName" id="myTestId" value="0" step="5" />',
+			'<input type="number" name="myTestName" id="myTestId" value="" step="5" />',
 		),
 
 		'Class' => array(
@@ -67,7 +77,7 @@ class JHtmlFieldNumberTest_DataSet
 				'name' => 'myTestName',
 				'class' => 'foo bar',
 			),
-			'<input type="number" name="myTestName" id="myTestId" value="0" class="foo bar" />',
+			'<input type="number" name="myTestName" id="myTestId" value="" class="foo bar" />',
 		),
 
 		'Disabled' => array(
@@ -76,7 +86,7 @@ class JHtmlFieldNumberTest_DataSet
 				'name' => 'myTestName',
 				'disabled' => true,
 			),
-			'<input type="number" name="myTestName" id="myTestId" value="0" disabled />',
+			'<input type="number" name="myTestName" id="myTestId" value="" disabled />',
 		),
 
 		'Readonly' => array(
@@ -85,7 +95,7 @@ class JHtmlFieldNumberTest_DataSet
 				'name' => 'myTestName',
 				'readonly' => true,
 			),
-			'<input type="number" name="myTestName" id="myTestId" value="0" readonly />',
+			'<input type="number" name="myTestName" id="myTestId" value="" readonly />',
 		),
 
 		'Autofocus' => array(
@@ -94,7 +104,7 @@ class JHtmlFieldNumberTest_DataSet
 				'name' => 'myTestName',
 				'autofocus' => true,
 			),
-			'<input type="number" name="myTestName" id="myTestId" value="0" autofocus />',
+			'<input type="number" name="myTestName" id="myTestId" value="" autofocus />',
 		),
 
 		'Onchange' => array(
@@ -103,7 +113,7 @@ class JHtmlFieldNumberTest_DataSet
 				'name' => 'myTestName',
 				'onchange' => 'foobar();',
 			),
-			'<input type="number" name="myTestName" id="myTestId" value="0" onchange="foobar();" />',
+			'<input type="number" name="myTestName" id="myTestId" value="" onchange="foobar();" />',
 		),
 	);
 }

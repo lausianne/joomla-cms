@@ -3,8 +3,8 @@
  * @package     Joomla.UnitTest
  * @subpackage  Crypt
  *
- * @copyright   Copyright (C) 2005 - 2011 Open Source Matters, Inc. All rights reserved.
- * @license     GNU General Public License version 2 or later; see LICENSE
+ * @copyright   Copyright (C) 2005 - 2018 Open Source Matters, Inc. All rights reserved.
+ * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 /**
@@ -15,7 +15,7 @@
  * @subpackage  Crypt
  * @since       11.1
  */
-class JCryptTest extends PHPUnit_Framework_TestCase
+class JCryptTest extends \PHPUnit\Framework\TestCase
 {
 	/**
 	 * @var JCrypt
@@ -36,63 +36,17 @@ class JCryptTest extends PHPUnit_Framework_TestCase
 	}
 
 	/**
-	 * Test...
+	 * Overrides the parent tearDown method.
 	 *
-	 * @todo Implement testDecrypt().
+	 * @return  void
 	 *
-	 * @return void
+	 * @see     \PHPUnit\Framework\TestCase::tearDown()
+	 * @since   3.6
 	 */
-	public function testDecrypt()
+	protected function tearDown()
 	{
-		// Remove the following lines when you implement this test.
-		$this->markTestIncomplete(
-			'This test has not been implemented yet.'
-		);
-	}
-
-	/**
-	 * Test...
-	 *
-	 * @todo Implement testEncrypt().
-	 *
-	 * @return void
-	 */
-	public function testEncrypt()
-	{
-		// Remove the following lines when you implement this test.
-		$this->markTestIncomplete(
-			'This test has not been implemented yet.'
-		);
-	}
-
-	/**
-	 * Test...
-	 *
-	 * @todo Implement testGenerateKey().
-	 *
-	 * @return void
-	 */
-	public function testGenerateKey()
-	{
-		// Remove the following lines when you implement this test.
-		$this->markTestIncomplete(
-			'This test has not been implemented yet.'
-		);
-	}
-
-	/**
-	 * Test...
-	 *
-	 * @todo Implement testSetKey().
-	 *
-	 * @return void
-	 */
-	public function testSetKey()
-	{
-		// Remove the following lines when you implement this test.
-		$this->markTestIncomplete(
-			'This test has not been implemented yet.'
-		);
+		unset($this->object);
+		parent::tearDown();
 	}
 
 	/**
@@ -102,7 +56,7 @@ class JCryptTest extends PHPUnit_Framework_TestCase
 	 */
 	public function testGenRandomBytes()
 	{
-		// We're just testing wether the value has the expected length.
+		// We're just testing whether the value has the expected length.
 		// We obviously can't test the result since it's random.
 
 		$randomBytes16 = JCrypt::genRandomBytes();

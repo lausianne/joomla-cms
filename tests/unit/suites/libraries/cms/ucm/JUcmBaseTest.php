@@ -3,8 +3,8 @@
  * @package	    Joomla.UnitTest
  * @subpackage  UCM
  *
- * @copyright   Copyright (C) 2005 - 2014 Open Source Matters, Inc. All rights reserved.
- * @license	    GNU General Public License version 2 or later; see LICENSE
+ * @copyright   Copyright (C) 2005 - 2018 Open Source Matters, Inc. All rights reserved.
+ * @license	    GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 /**
@@ -52,7 +52,7 @@ class JUcmBaseTest extends TestCaseDatabase
 	protected function tearDown()
 	{
 		$this->restoreFactoryState();
-
+		unset($this->object);
 		parent::tearDown();
 	}
 
@@ -107,17 +107,5 @@ class JUcmBaseTest extends TestCaseDatabase
 			'Article',
 			'The type title for com_content.article is Article.'
 		);
-	}
-
-	/**
-	 * Tests the mapBase() method
-	 *
-	 * @return  void
-	 *
-	 * @since   3.2
-	 */
-	public function testMapBase()
-	{
-		$this->markTestSkipped('Test not implemented.');
 	}
 }

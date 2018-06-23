@@ -3,7 +3,7 @@
  * @package     Joomla.UnitTest
  * @subpackage  Database
  *
- * @copyright   Copyright (C) 2005 - 2014 Open Source Matters. All rights reserved.
+ * @copyright   Copyright (C) 2005 - 2018 Open Source Matters. All rights reserved.
  * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -280,7 +280,9 @@ class JDatabaseQueryTest extends TestCase
 			->where('b.id = 1')
 			->group('a.id')
 			->having('COUNT(a.id) > 3')
-			->order('a.id');
+			->union('SELECT c.id FROM c')
+			->unionAll('SELECT d.id FROM d')
+			->order('id');
 
 		$this->assertThat(
 			(string) $this->_instance,
@@ -291,7 +293,9 @@ class JDatabaseQueryTest extends TestCase
 					PHP_EOL . "WHERE b.id = 1" .
 					PHP_EOL . "GROUP BY a.id" .
 					PHP_EOL . "HAVING COUNT(a.id) > 3" .
-					PHP_EOL . "ORDER BY a.id"
+					PHP_EOL . "UNION (SELECT c.id FROM c)" .
+					PHP_EOL . "UNION ALL (SELECT d.id FROM d)" .
+					PHP_EOL . "ORDER BY id"
 			),
 			'Tests for correct rendering.'
 		);
@@ -323,37 +327,6 @@ class JDatabaseQueryTest extends TestCase
 		);
 	}
 
-	/**
-	 * Tests the union element of __toString.
-	 *
-	 * @return  void
-	 *
-	 * @since   12.1
-	 */
-	public function test__toStringUnion()
-	{
-		$this->markTestIncomplete('This test does not work!');
-		$this->_instance->select('*')
-			->union('SELECT id FROM a');
-
-		$this->assertEquals("UNION (SELECT id FROM a)", trim($this->_instance));
-	}
-
-	/**
-	 * Tests the unionAll element of __toString.
-	 *
-	 * @return  void
-	 *
-	 * @since   13.1
-	 */
-	public function test__toStringUnionAll()
-	{
-		$this->markTestIncomplete('This test does not work!');
-		$this->_instance->select('*')
-		->unionAll('SELECT id FROM a');
-
-		$this->assertEquals("UNION ALL (SELECT id FROM a)", trim($this->_instance));
-	}
 	/**
 	 * Tests the JDatabaseQuery::call method.
 	 *
@@ -1333,22 +1306,26 @@ class JDatabaseQueryTest extends TestCase
 			'Tests chaining.'
 		);
 
-		$this->assertThat(
+		$this->assertEquals(
+			'SET foo = 1',
 			trim(TestReflection::getValue($this->_instance, 'set')),
-			$this->identicalTo('SET foo = 1'),
 			'Tests set with a string.'
 		);
 
 		$this->_instance->set('bar = 2');
-		$this->assertEquals("SET foo = 1" . PHP_EOL . "\t, bar = 2", trim(TestReflection::getValue($this->_instance, 'set')), 'Tests appending with set().');
+		$this->assertEquals(
+			"SET foo = 1\n\t, bar = 2",
+			trim(TestReflection::getValue($this->_instance, 'set')),
+			'Tests appending with set().'
+		);
 
 		// Clear the set.
 		TestReflection::setValue($this->_instance, 'set', null);
 		$this->_instance->set(array('foo = 1', 'bar = 2'));
 
-		$this->assertThat(
+		$this->assertEquals(
+			"SET foo = 1\n\t, bar = 2",
 			trim(TestReflection::getValue($this->_instance, 'set')),
-			$this->identicalTo("SET foo = 1" . PHP_EOL . "\t, bar = 2"),
 			'Tests set with an array.'
 		);
 
@@ -1356,9 +1333,9 @@ class JDatabaseQueryTest extends TestCase
 		TestReflection::setValue($this->_instance, 'set', null);
 		$this->_instance->set(array('foo = 1', 'bar = 2'), ';');
 
-		$this->assertThat(
+		$this->assertEquals(
+			"SET foo = 1\n\t; bar = 2",
 			trim(TestReflection::getValue($this->_instance, 'set')),
-			$this->identicalTo("SET foo = 1" . PHP_EOL . "\t; bar = 2"),
 			'Tests set with an array and glue.'
 		);
 	}
@@ -1478,6 +1455,15 @@ class JDatabaseQueryTest extends TestCase
 			'Tests rendered value after second use and array input.'
 		);
 
+		// Add more columns but specify different glue.
+		// Note that the change of glue is ignored.
+		$this->_instance->where(array('faz = 4', 'gaz = 5'), 'OR');
+		$this->assertThat(
+			trim(TestReflection::getValue($this->_instance, 'where')),
+			$this->equalTo('WHERE foo = 1 AND bar = 2 AND goo = 3 AND faz = 4 AND gaz = 5'),
+			'Tests rendered value after third use, array input and different glue.'
+		);
+
 		// Clear the where
 		TestReflection::setValue($this->_instance, 'where', null);
 		$this->_instance->where(array('bar = 2', 'goo = 3'), 'OR');
@@ -1486,6 +1472,156 @@ class JDatabaseQueryTest extends TestCase
 			trim(TestReflection::getValue($this->_instance, 'where')),
 			$this->equalTo('WHERE bar = 2 OR goo = 3'),
 			'Tests rendered value with glue.'
+		);
+	}
+
+	/**
+	 * Tests the JDatabaseQuery::extendWhere method.
+	 *
+	 * @return  void
+	 *
+	 * @since   3.6
+	 */
+	public function testExtendWhere()
+	{
+		$this->assertThat(
+			$this->_instance->where('foo = 1')->extendWhere('ABC', 'bar = 2'),
+			$this->identicalTo($this->_instance),
+			'Tests chaining.'
+		);
+
+		$this->assertThat(
+			trim(TestReflection::getValue($this->_instance, 'where')),
+			$this->equalTo('WHERE '
+				. PHP_EOL . '(foo = 1) ABC '
+				. PHP_EOL . '(bar = 2)'),
+			'Tests rendered value.'
+		);
+
+		// Add another set of where conditions.
+		$this->_instance->extendWhere('XYZ', array('baz = 3', 'goo = 4'));
+		$this->assertThat(
+			trim(TestReflection::getValue($this->_instance, 'where')),
+			$this->equalTo('WHERE '
+				. PHP_EOL . '('
+				. PHP_EOL . '(foo = 1) ABC '
+				. PHP_EOL . '(bar = 2)) XYZ '
+				. PHP_EOL . '(baz = 3 AND goo = 4)'),
+			'Tests rendered value after second use and array input.'
+		);
+
+		// Add another set of where conditions with some different glue.
+		$this->_instance->extendWhere('STU', array('faz = 5', 'gaz = 6'), 'VWX');
+		$this->assertThat(
+			trim(TestReflection::getValue($this->_instance, 'where')),
+			$this->equalTo('WHERE '
+				. PHP_EOL . '('
+				. PHP_EOL . '('
+				. PHP_EOL . '(foo = 1) ABC '
+				. PHP_EOL . '(bar = 2)) XYZ '
+				. PHP_EOL . '(baz = 3 AND goo = 4)) STU '
+				. PHP_EOL . '(faz = 5 VWX gaz = 6)'),
+			'Tests rendered value after third use, array input and different glue.'
+		);
+	}
+
+	/**
+	 * Tests the JDatabaseQuery::orWhere method.
+	 *
+	 * @return  void
+	 *
+	 * @since   3.6
+	 */
+	public function testOrWhere()
+	{
+		$this->assertThat(
+			$this->_instance->where('foo = 1')->orWhere('bar = 2'),
+			$this->identicalTo($this->_instance),
+			'Tests chaining.'
+		);
+
+		$this->assertThat(
+			trim(TestReflection::getValue($this->_instance, 'where')),
+			$this->equalTo('WHERE '
+				. PHP_EOL . '(foo = 1) OR '
+				. PHP_EOL . '(bar = 2)'),
+			'Tests rendered value.'
+		);
+
+		// Add another set of where conditions.
+		$this->_instance->orWhere(array('baz = 3', 'goo = 4'));
+		$this->assertThat(
+			trim(TestReflection::getValue($this->_instance, 'where')),
+			$this->equalTo('WHERE '
+				. PHP_EOL . '('
+				. PHP_EOL . '(foo = 1) OR '
+				. PHP_EOL . '(bar = 2)) OR '
+				. PHP_EOL . '(baz = 3 AND goo = 4)'),
+			'Tests rendered value after second use and array input.'
+		);
+
+		// Add another set of where conditions with some different glue.
+		$this->_instance->orWhere(array('faz = 5', 'gaz = 6'), 'XOR');
+		$this->assertThat(
+			trim(TestReflection::getValue($this->_instance, 'where')),
+			$this->equalTo('WHERE '
+				. PHP_EOL . '('
+				. PHP_EOL . '('
+				. PHP_EOL . '(foo = 1) OR '
+				. PHP_EOL . '(bar = 2)) OR '
+				. PHP_EOL . '(baz = 3 AND goo = 4)) OR '
+				. PHP_EOL . '(faz = 5 XOR gaz = 6)'),
+			'Tests rendered value after third use, array input and different glue.'
+		);
+	}
+
+	/**
+	 * Tests the JDatabaseQuery::andWhere method.
+	 *
+	 * @return  void
+	 *
+	 * @since   3.6
+	 */
+	public function testAndWhere()
+	{
+		$this->assertThat(
+			$this->_instance->where('foo = 1')->andWhere('bar = 2'),
+			$this->identicalTo($this->_instance),
+			'Tests chaining.'
+		);
+
+		$this->assertThat(
+			trim(TestReflection::getValue($this->_instance, 'where')),
+			$this->equalTo('WHERE '
+				. PHP_EOL . '(foo = 1) AND '
+				. PHP_EOL . '(bar = 2)'),
+			'Tests rendered value.'
+		);
+
+		// Add another set of where conditions.
+		$this->_instance->andWhere(array('baz = 3', 'goo = 4'));
+		$this->assertThat(
+			trim(TestReflection::getValue($this->_instance, 'where')),
+			$this->equalTo('WHERE '
+				. PHP_EOL . '('
+				. PHP_EOL . '(foo = 1) AND '
+				. PHP_EOL . '(bar = 2)) AND '
+				. PHP_EOL . '(baz = 3 OR goo = 4)'),
+			'Tests rendered value after second use and array input.'
+		);
+
+		// Add another set of where conditions with some different glue.
+		$this->_instance->andWhere(array('faz = 5', 'gaz = 6'), 'XOR');
+		$this->assertThat(
+			trim(TestReflection::getValue($this->_instance, 'where')),
+			$this->equalTo('WHERE '
+				. PHP_EOL . '('
+				. PHP_EOL . '('
+				. PHP_EOL . '(foo = 1) AND '
+				. PHP_EOL . '(bar = 2)) AND '
+				. PHP_EOL . '(baz = 3 OR goo = 4)) AND '
+				. PHP_EOL . '(faz = 5 XOR gaz = 6)'),
+			'Tests rendered value after third use, array input and different glue.'
 		);
 	}
 
@@ -1506,8 +1642,8 @@ class JDatabaseQueryTest extends TestCase
 
 		$baseElement->testArray[] = 'test';
 
-		$this->assertFalse($baseElement === $cloneElement);
-		$this->assertTrue(count($cloneElement->testArray) == 0);
+		$this->assertNotSame($baseElement, $cloneElement);
+		$this->assertCount(0, $cloneElement->testArray);
 	}
 
 	/**
@@ -1525,9 +1661,9 @@ class JDatabaseQueryTest extends TestCase
 
 		$cloneElement = clone($baseElement);
 
-		$this->assertFalse($baseElement === $cloneElement);
+		$this->assertNotSame($baseElement, $cloneElement);
 
-		$this->assertFalse($baseElement->testObject === $cloneElement->testObject);
+		$this->assertNotSame($baseElement->testObject, $cloneElement->testObject);
 	}
 
 	/**
@@ -1543,26 +1679,6 @@ class JDatabaseQueryTest extends TestCase
 			$this->_instance->union($this->_instance),
 			$this->identicalTo($this->_instance),
 			'Tests chaining.'
-		);
-	}
-
-	/**
-	 * Tests the JDatabaseQuery::union method.
-	 *
-	 * @return  void
-	 *
-	 * @since   12.1
-	 */
-	public function testUnionClear()
-	{
-		TestReflection::setValue($this->_instance, 'union', null);
-		TestReflection::setValue($this->_instance, 'order', null);
-		$this->_instance->order('bar');
-		$this->_instance->union('SELECT name FROM foo');
-		$this->assertThat(
-			TestReflection::getValue($this->_instance, 'order'),
-			$this->equalTo(null),
-			'Tests that ORDER BY is cleared with union.'
 		);
 	}
 
@@ -1720,6 +1836,113 @@ class JDatabaseQueryTest extends TestCase
 	}
 
 	/**
+	 * Tests the JDatabaseQuery::union method when passed a query object instead of a string.
+	 *
+	 * @return  void
+	 *
+	 * @since   12.??
+	 */
+	public function testUnionObject()
+	{
+		$this->_instance->select('name')->from('foo')->where('a=1');
+
+		$q2 = new JDatabaseQueryInspector($this->dbo);
+		$q2->select('name')->from('bar')->where('b=2');
+
+		TestReflection::setValue($this->_instance, 'union', null);
+		$this->_instance->union($q2);
+
+		$this->assertThat(
+			(string) $this->_instance,
+			$this->equalTo(
+				PHP_EOL . "SELECT name" . PHP_EOL .
+				"FROM foo" . PHP_EOL .
+				"WHERE a=1" . PHP_EOL .
+				"UNION (" . PHP_EOL .
+				"SELECT name" . PHP_EOL .
+				"FROM bar" . PHP_EOL .
+				"WHERE b=2)"
+			)
+		);
+	}
+
+	/**
+	 * Tests the JDatabaseQuery::union method when passed two query objects chained.
+	 *
+	 * @return  void
+	 *
+	 * @since   12.??
+	 */
+	public function testUnionObjectsChained()
+	{
+		$this->_instance->select('name')->from('foo')->where('a=1');
+
+		$q2 = new JDatabaseQueryInspector($this->dbo);
+		$q2->select('name')->from('bar')->where('b=2');
+
+		$q3 = new JDatabaseQueryInspector($this->dbo);
+		$q3->select('name')->from('baz')->where('c=3');
+
+		TestReflection::setValue($this->_instance, 'union', null);
+		$this->_instance->union($q2)->union($q3);
+
+		$this->assertThat(
+			(string) $this->_instance,
+			$this->equalTo(
+				PHP_EOL . "SELECT name" . PHP_EOL .
+				"FROM foo" . PHP_EOL .
+				"WHERE a=1" . PHP_EOL .
+				"UNION (" . PHP_EOL .
+				"SELECT name" . PHP_EOL .
+				"FROM bar" . PHP_EOL .
+				"WHERE b=2)" . PHP_EOL .
+				"UNION (" . PHP_EOL .
+				"SELECT name" . PHP_EOL .
+				"FROM baz" . PHP_EOL .
+				"WHERE c=3)"
+			)
+		);
+	}
+
+	/**
+	 * Tests the JDatabaseQuery::union method when passed two query objects in an array.
+	 *
+	 * @return  void
+	 *
+	 * @since   12.??
+	 */
+	public function testUnionObjectsArray()
+	{
+		$this->_instance->select('name')->from('foo')->where('a=1');
+
+		$q2 = new JDatabaseQueryInspector($this->dbo);
+		$q2->select('name')->from('bar')->where('b=2');
+
+		$q3 = new JDatabaseQueryInspector($this->dbo);
+		$q3->select('name')->from('baz')->where('c=3');
+
+		TestReflection::setValue($this->_instance, 'union', null);
+		$this->_instance->union(array($q2, $q3));
+
+		$this->assertThat(
+			(string) $this->_instance,
+			$this->equalTo(
+				PHP_EOL . "SELECT name" . PHP_EOL .
+				"FROM foo" . PHP_EOL .
+				"WHERE a=1" . PHP_EOL .
+				"UNION (" . PHP_EOL .
+				"SELECT name" . PHP_EOL .
+				"FROM bar" . PHP_EOL .
+				"WHERE b=2)" . PHP_EOL .
+				"UNION (" . PHP_EOL .
+				"SELECT name" . PHP_EOL .
+				"FROM baz" . PHP_EOL .
+				"WHERE c=3)"
+			)
+		);
+	}
+
+	/**
 	 * Tests the JDatabaseQuery::format method.
 	 *
 	 * @return  void
@@ -1768,6 +1991,20 @@ class JDatabaseQueryTest extends TestCase
 	}
 
 	/**
+	 * Overrides the parent tearDown method.
+	 *
+	 * @return  void
+	 *
+	 * @see     \PHPUnit\Framework\TestCase::tearDown()
+	 * @since   3.6
+	 */
+	protected function tearDown()
+	{
+		unset($this->dbo, $this->_instance);
+		parent::tearDown();
+	}
+
+	/**
 	 * Data for the testDateAdd test.
 	 *
 	 * @return  array
@@ -1777,7 +2014,7 @@ class JDatabaseQueryTest extends TestCase
 	public function seedDateAdd()
 	{
 		return array(
-			// date, interval, datepart, expected
+			// Elements: date, interval, datepart, expected
 			'Add date'		=> array('2008-12-31', '1', 'DAY', "DATE_ADD('2008-12-31', INTERVAL 1 DAY)"),
 			'Subtract date'	=> array('2008-12-31', '-1', 'DAY', "DATE_ADD('2008-12-31', INTERVAL -1 DAY)"),
 			'Add datetime'	=> array('2008-12-31 23:59:59', '1', 'DAY', "DATE_ADD('2008-12-31 23:59:59', INTERVAL 1 DAY)"),

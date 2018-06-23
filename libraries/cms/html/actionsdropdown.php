@@ -3,8 +3,8 @@
  * @package     Joomla.Libraries
  * @subpackage  HTML
  *
- * @copyright   Copyright (C) 2005 - 2014 Open Source Matters, Inc. All rights reserved.
- * @license     GNU General Public License version 2 or later; see LICENSE
+ * @copyright   Copyright (C) 2005 - 2018 Open Source Matters, Inc. All rights reserved.
+ * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 defined('JPATH_PLATFORM') or die;
@@ -12,9 +12,7 @@ defined('JPATH_PLATFORM') or die;
 /**
  * HTML utility class for building a dropdown menu
  *
- * @package     Joomla.Libraries
- * @subpackage  HTML
- * @since       3.2
+ * @since  3.2
  */
 abstract class JHtmlActionsDropdown
 {
@@ -48,7 +46,7 @@ abstract class JHtmlActionsDropdown
 		$html[] = '</button>';
 		$html[] = '<ul class="dropdown-menu">';
 		$html[] = implode('', static::$dropDownList);
-		$html[] = '</ul></div>';
+		$html[] = '</ul>';
 
 		static::$dropDownList = null;
 
@@ -226,7 +224,7 @@ abstract class JHtmlActionsDropdown
 	{
 		static::$dropDownList[] = '<li>'
 			. '<a href = "javascript://" onclick="listItemTask(\'' . $id . '\', \'' . $task . '\')">'
-			. ($icon ? '<span class="icon-' . $icon . '"></span> ' : '')
+			. ($icon ? '<span class="icon-' . $icon . '" aria-hidden="true"></span> ' : '')
 			. $label
 			. '</a>'
 			. '</li>';

@@ -3,21 +3,29 @@
  * @package     Joomla.Plugin
  * @subpackage  Content.Contact
  *
- * @copyright   Copyright (C) 2005 - 2014 Open Source Matters, Inc. All rights reserved.
+ * @copyright   Copyright (C) 2005 - 2018 Open Source Matters, Inc. All rights reserved.
  * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 defined('_JEXEC') or die;
 
+use Joomla\Registry\Registry;
+
 /**
  * Contact Plugin
  *
- * @package     Joomla.Plugin
- * @subpackage  Content.Contact
- * @since       3.2
+ * @since  3.2
  */
 class PlgContentContact extends JPlugin
 {
+	/**
+	 * Database object
+	 *
+	 * @var    JDatabaseDriver
+	 * @since  3.3
+	 */
+	protected $db;
+
 	/**
 	 * Plugin that retrieves contact information for contact
 	 *
@@ -31,13 +39,14 @@ class PlgContentContact extends JPlugin
 	public function onContentPrepare($context, &$row, $params, $page = 0)
 	{
 		$allowed_contexts = array('com_content.category', 'com_content.article', 'com_content.featured');
+
 		if (!in_array($context, $allowed_contexts))
 		{
 			return true;
 		}
 
 		// Return if we don't have valid params or don't link the author
-		if (!($params instanceof JRegistry) || !$params->get('link_author'))
+		if (!($params instanceof Registry) || !$params->get('link_author'))
 		{
 			return true;
 		}
@@ -48,15 +57,13 @@ class PlgContentContact extends JPlugin
 			return true;
 		}
 
-		$row->contactid = $this->getContactID($row->created_by);
+		$contact = $this->getContactId($row->created_by);
+		$row->contactid = $contact->contactid;
 
 		if ($row->contactid)
 		{
-			$needle = 'index.php?option=com_contact&view=contact&id=' . $row->contactid;
-			$menu = JFactory::getApplication()->getMenu();
-			$item = $menu->getItems('link', $needle, true);
-			$link = $item ? $needle . '&Itemid=' . $item->id : $needle;
-			$row->contact_link = JRoute::_($link);
+			JLoader::register('ContactHelperRoute', JPATH_SITE . '/components/com_contact/helpers/route.php');
+			$row->contact_link = JRoute::_(ContactHelperRoute::getContactRoute($contact->contactid . ':' . $contact->alias, $contact->catid));
 		}
 		else
 		{
@@ -69,36 +76,36 @@ class PlgContentContact extends JPlugin
 	/**
 	 * Retrieve Contact
 	 *
-	 * @param   int    $created_by
+	 * @param   int  $created_by  Id of the user who created the contact
 	 *
 	 * @return  mixed|null|integer
 	 */
-	protected function getContactID($created_by)
+	protected function getContactId($created_by)
 	{
 		static $contacts = array();
-		if(isset($contacts[$created_by]))
+
+		if (isset($contacts[$created_by]))
 		{
 			return $contacts[$created_by];
 		}
 
-		$db = JFactory::getDbo();
-		$query = $db->getQuery(true);
+		$query = $this->db->getQuery(true);
 
-		$query->select('MAX(contact.id) AS contactid');
-		$query->from('#__contact_details AS contact');
+		$query->select('MAX(contact.id) AS contactid, contact.alias, contact.catid');
+		$query->from($this->db->quoteName('#__contact_details', 'contact'));
 		$query->where('contact.published = 1');
 		$query->where('contact.user_id = ' . (int) $created_by);
 
-		if (JLanguageMultilang::isEnabled() == 1)
+		if (JLanguageMultilang::isEnabled() === true)
 		{
 			$query->where('(contact.language in '
-				. '(' . $db->quote(JFactory::getLanguage()->getTag()) . ',' . $db->quote('*') . ') '
+				. '(' . $this->db->quote(JFactory::getLanguage()->getTag()) . ',' . $this->db->quote('*') . ') '
 				. ' OR contact.language IS NULL)');
 		}
 
-		$db->setQuery($query);
+		$this->db->setQuery($query);
 
-		$contacts[$created_by] = $db->loadResult();
+		$contacts[$created_by] = $this->db->loadObject();
 
 		return $contacts[$created_by];
 	}

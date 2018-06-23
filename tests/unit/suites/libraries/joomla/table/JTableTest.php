@@ -3,8 +3,8 @@
  * @package     Joomla.UnitTest
  * @subpackage  Table
  *
- * @copyright   Copyright (C) 2005 - 2014 Open Source Matters, Inc. All rights reserved.
- * @license     GNU General Public License version 2 or later; see LICENSE
+ * @copyright   Copyright (C) 2005 - 2018 Open Source Matters, Inc. All rights reserved.
+ * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 require_once __DIR__ . '/stubs/dbtestcomposite.php';
@@ -49,6 +49,7 @@ class JTableTest extends TestCaseDatabase
 	 */
 	protected function tearDown()
 	{
+		unset($this->object);
 		parent::tearDown();
 	}
 
@@ -107,7 +108,7 @@ class JTableTest extends TestCaseDatabase
 				),
 				'checked_out_time' => (object) array(
 					'Field' => 'checked_out_time',
-					'Type' => 'TEXT',
+					'Type' => 'DATETIME',
 					'Null' => 'NO',
 					'Default' => '\'0000-00-00 00:00:00\'',
 					'Key' => ''
@@ -121,14 +122,14 @@ class JTableTest extends TestCaseDatabase
 				),
 				'publish_up' => (object) array(
 					'Field' => 'publish_up',
-					'Type' => 'TEXT',
+					'Type' => 'DATETIME',
 					'Null' => 'NO',
 					'Default' => '\'0000-00-00 00:00:00\'',
 					'Key' => ''
 				),
 				'publish_down' => (object) array(
 					'Field' => 'publish_down',
-					'Type' => 'TEXT',
+					'Type' => 'DATETIME',
 					'Null' => 'NO',
 					'Default' => '\'0000-00-00 00:00:00\'',
 					'Key' => ''
@@ -139,7 +140,14 @@ class JTableTest extends TestCaseDatabase
 					'Null' => 'NO',
 					'Default' => '\'0\'',
 					'Key' => ''
-				)
+				),
+				'params' => (object) array(
+					'Field' => 'params',
+					'Type' => 'TEXT',
+					'Null' => 'NO',
+					'Default' => '\'\'',
+					'Key' => ''
+				),
 			),
 			$this->object->getFields()
 		);
@@ -186,7 +194,7 @@ class JTableTest extends TestCaseDatabase
 		$expected = array(
 			'/dummy/',
 			'dir/not/exist',
-			realpath(JPATH_PLATFORM . '/joomla/table')
+			realpath(JPATH_PLATFORM . '/src/Table')
 		);
 
 		// Add dummy paths
@@ -265,7 +273,7 @@ class JTableTest extends TestCaseDatabase
 	 *
 	 * @since   12.3
 	 */
-	public function testSetDBO()
+	public function testSetDbo()
 	{
 		$db = $this->getMockBuilder('JDatabaseDriver')
 			->disableOriginalConstructor()
@@ -277,32 +285,6 @@ class JTableTest extends TestCaseDatabase
 			$db,
 			TestReflection::getValue($this->object, '_db')
 		);
-	}
-
-	/**
-	 * Test for setRules method.
-	 *
-	 * @return  void
-	 *
-	 * @todo   Implement testSetRules().
-	 */
-	public function testSetRules()
-	{
-		// Remove the following lines when you implement this test.
-		$this->markTestIncomplete('This test has not been implemented yet.');
-	}
-
-	/**
-	 * Test for getRules method.
-	 *
-	 * @return void
-	 *
-	 * @todo   Implement testGetRules().
-	 */
-	public function testGetRules()
-	{
-		// Remove the following lines when you implement this test.
-		$this->markTestIncomplete('This test has not been implemented yet.');
 	}
 
 	/**
@@ -347,7 +329,8 @@ class JTableTest extends TestCaseDatabase
 	 */
 	public function testBind()
 	{
-		$this->object->bind(array('id1' => 25, 'id2' => 50, 'title' => 'My Title'));
+		TestReflection::setValue($this->object, '_jsonEncode', array('params'));
+		$this->object->bind(array('id1' => 25, 'id2' => 50, 'title' => 'My Title', 'params' => array('param1' => 'value1', 'param2' => 25)));
 
 		$this->assertEquals(
 			25,
@@ -362,6 +345,13 @@ class JTableTest extends TestCaseDatabase
 		$this->assertEquals(
 			'My Title',
 			$this->object->title
+		);
+
+		// Check the object is json encoded properly
+		$this->assertEquals(
+			'{"param1":"value1","param2":25}',
+			$this->object->params,
+			'The object should be json encoded'
 		);
 	}
 

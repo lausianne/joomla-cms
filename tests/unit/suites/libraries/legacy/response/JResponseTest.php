@@ -3,8 +3,8 @@
  * @package     Joomla.UnitTest
  * @subpackage  Response
  *
- * @copyright   Copyright (C) 2005 - 2014 Open Source Matters, Inc. All rights reserved.
- * @license     GNU General Public License version 2 or later; see LICENSE
+ * @copyright   Copyright (C) 2005 - 2018 Open Source Matters, Inc. All rights reserved.
+ * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 /**
@@ -122,95 +122,4 @@ class JResponseTest extends TestCase
 			$this->equalTo(0)
 		);
 	}
-
-	/**
-	 * Test...
-	 *
-	 * @todo Implement testSendHeaders().
-	 *
-	 * @return void
-	 */
-	public function testSendHeaders()
-	{
-		// Remove the following lines when you implement this test.
-		$this->markTestIncomplete(
-			'This test has not been implemented yet.'
-		);
-	}
-
-	/**
-	 * Test...
-	 *
-	 * @todo Implement testSetBody().
-	 *
-	 * @return void
-	 */
-	public function testSetBody()
-	{
-		// Remove the following lines when you implement this test.
-		$this->markTestIncomplete(
-			'This test has not been implemented yet.'
-		);
-	}
-
-	/**
-	 * Test...
-	 *
-	 * @todo Implement testPrependBody().
-	 *
-	 * @return void
-	 */
-	public function testPrependBody()
-	{
-		// Remove the following lines when you implement this test.
-		$this->markTestIncomplete(
-			'This test has not been implemented yet.'
-		);
-	}
-
-	/**
-	 * Test...
-	 *
-	 * @todo Implement testAppendBody().
-	 *
-	 * @return void
-	 */
-	public function testAppendBody()
-	{
-		// Remove the following lines when you implement this test.
-		$this->markTestIncomplete(
-			'This test has not been implemented yet.'
-		);
-	}
-
-	/**
-	 * Test...
-	 *
-	 * @todo Implement testGetBody().
-	 *
-	 * @return void
-	 */
-	public function testGetBody()
-	{
-		// Remove the following lines when you implement this test.
-		$this->markTestIncomplete(
-			'This test has not been implemented yet.'
-		);
-	}
-
-	/**
-	 * Test...
-	 *
-	 * @todo Implement testToString().
-	 *
-	 * @return void
-	 */
-	public function testToString()
-	{
-		// Remove the following lines when you implement this test.
-		$this->markTestIncomplete(
-			'This test has not been implemented yet.'
-		);
-	}
-
 }

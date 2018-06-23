@@ -3,8 +3,8 @@
  * @package     Joomla.UnitTest
  * @subpackage  Form
  *
- * @copyright   Copyright (C) 2005 - 2014 Open Source Matters, Inc. All rights reserved.
- * @license     GNU General Public License version 2 or later; see LICENSE
+ * @copyright   Copyright (C) 2005 - 2018 Open Source Matters, Inc. All rights reserved.
+ * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 JFormHelper::loadFieldClass('color');
@@ -16,7 +16,7 @@ JFormHelper::loadFieldClass('color');
  * @subpackage  Form
  * @since       12.1
  */
-class JFormFieldColorTest extends TestCase
+class JFormFieldColorTest extends TestCaseDatabase
 {
 	/**
 	 * This method is called before the first test of this test class is run.

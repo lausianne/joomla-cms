@@ -3,8 +3,8 @@
  * @package     Joomla.UnitTest
  * @subpackage  Base
  *
- * @copyright   Copyright (C) 2005 - 2014 Open Source Matters, Inc. All rights reserved.
- * @license     GNU General Public License version 2 or later; see LICENSE
+ * @copyright   Copyright (C) 2005 - 2018 Open Source Matters, Inc. All rights reserved.
+ * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 jimport('joomla.base.adapter');
@@ -55,8 +55,6 @@ class JAdapterInstanceTest extends TestCase
 
 	/**
 	 * Test...
-	 *
-	 * @todo Decide how to Implement.
 	 *
 	 * @return void
 	 */

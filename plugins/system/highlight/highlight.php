@@ -3,18 +3,16 @@
  * @package     Joomla.Plugin
  * @subpackage  System.Highlight
  *
- * @copyright   Copyright (C) 2005 - 2014 Open Source Matters, Inc. All rights reserved.
- * @license     GNU General Public License version 2 or later; see LICENSE
+ * @copyright   Copyright (C) 2005 - 2018 Open Source Matters, Inc. All rights reserved.
+ * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-defined('JPATH_BASE') or die;
+defined('_JEXEC') or die;
 
 /**
  * System plugin to highlight terms.
  *
- * @package     Joomla.Plugin
- * @subpackage  System.Highlight
- * @since       2.5
+ * @since  2.5
  */
 class PlgSystemHighlight extends JPlugin
 {
@@ -32,7 +30,7 @@ class PlgSystemHighlight extends JPlugin
 	public function onAfterDispatch()
 	{
 		// Check that we are in the site application.
-		if (JFactory::getApplication()->isAdmin())
+		if (JFactory::getApplication()->isClient('administrator'))
 		{
 			return true;
 		}
@@ -48,7 +46,7 @@ class PlgSystemHighlight extends JPlugin
 		}
 
 		// Check if the highlighter should be activated in this environment.
-		if (JFactory::getDocument()->getType() !== 'html' || $input->get('tmpl', '', 'cmd') === 'component')
+		if ($input->get('tmpl', '', 'cmd') === 'component' || JFactory::getDocument()->getType() !== 'html')
 		{
 			return true;
 		}
@@ -64,9 +62,10 @@ class PlgSystemHighlight extends JPlugin
 		}
 
 		// Clean the terms array.
-		$filter = JFilterInput::getInstance();
+		$filter     = JFilterInput::getInstance();
 
 		$cleanTerms = array();
+
 		foreach ($terms as $term)
 		{
 			$cleanTerms[] = htmlspecialchars($filter->clean($term, 'string'));
